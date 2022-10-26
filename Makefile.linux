@@ -11,14 +11,15 @@ PROJECT = riverdi-demo
 DEFS = -DLINUX_PLATFORM
 DEFS += -DBUFFER_OPTIMIZATION
 
-DEFS += -DEVE_2
-DEFS += -DCTP_50
+DEFS += -DEVE_4
+DEFS += -DIPS_70
+DEFS += -g3 -o0
 
 # Define optimisation level here
 OPT =
 
 # Tools
-PREFIX =
+PREFIX = /repo/sdk/falcon_a/arm-buildroot-linux-gnueabihf_sdk-buildroot/bin/arm-linux-gnueabihf-
 CC   = $(PREFIX)gcc
 CXX  = $(PREFIX)g++
 GDB  = $(PREFIX)gdb

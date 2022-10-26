@@ -759,17 +759,24 @@ void App_Common_Init(Gpu_Hal_Context_t *phost) {
 	Gpu_HalInit_t halinit;
 	uint8_t chipid;
 
+    printf("Gpu Hal init start\n");
 	Gpu_Hal_Init(&halinit);
+    printf("Gpu hal init end\nGpuHal open start\n");
 	Gpu_Hal_Open(phost);
+    printf("Gpu hal open end\n");
 
+    printf("Gpu hal powercycle start\n");
 	Gpu_Hal_Powercycle(phost, TRUE);
+    printf("Gpu hal powercycle end\n");
 
 	/* FT81x will be in SPI Single channel after POR
 	 If we are here with FT4222 in multi channel, then
 	 an explicit switch to single channel is essential
 	 */
 #if (defined(FT81X_ENABLE))  || (defined(BT81X_ENABLE))
+    printf("setSPI start\n");
 	Gpu_Hal_SetSPI(phost, GPU_SPI_SINGLE_CHANNEL, GPU_SPI_ONEDUMMY);
+    printf("SetSPI end\n");
 #endif
 
 //    Gpu_HostCommand(phost,0x68);
@@ -786,30 +793,38 @@ void App_Common_Init(Gpu_Hal_Context_t *phost) {
 #if (defined(EVE_4_INTERNAL_OSC))
 	Gpu_HostCommand(phost, GPU_INTERNAL_OSC);
 #else
+    printf("Set external OSC start\n");
 	Gpu_HostCommand(phost,GPU_EXTERNAL_OSC);
+    printf("Set external OSC end\n");
 #endif
 #endif
 
+    printf("GPU ACTIVE M start\n");
 	Gpu_Hal_Sleep(100);
 	Gpu_HostCommand(phost, GPU_ACTIVE_M);
 	Gpu_Hal_Sleep(300);
+    printf("GPU ACTIVE M end\n");
 
 	//Gpu_HostCommand(phost,GPU_EXTERNAL_OSC);
 	//Gpu_HostCommand(phost,GPU_PLL_48M);
 	//Gpu_81X_SelectSysCLK(phost, GPU_SYSCLK_72M);
 
+    printf("GPU WRITE FREQ start \n");
 	Gpu_Hal_Wr32(phost, REG_FREQUENCY, 72000000);
 
 	uint32_t freq = Gpu_Hal_Rd32(phost, REG_FREQUENCY);
 
 	Gpu_Hal_Wr8(phost, REG_TRIM, 25);
+    printf("GPU WRITE FREQ end\n");
 
 	/* read Register ID to check if chip ID series is correct */
+    printf("Looking for chip id\n");
 	chipid = Gpu_Hal_Rd8(phost, REG_ID);
 	while (chipid != 0x7C) {
 		chipid = Gpu_Hal_Rd8(phost, REG_ID);
 		Gpu_Hal_Sleep(100);
 	}
+    printf("Chip ID found\n");
 
 	/* read REG_CPURESET to confirm 0 is returned */
 	{

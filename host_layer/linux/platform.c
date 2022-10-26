@@ -4,6 +4,7 @@
  */
 
 #include "platform.h"
+#include <sys/mman.h>
 
 int fd;
 
@@ -197,12 +198,43 @@ gpio_set_direction (unsigned int gpio,
   return 0;
 }
 
+#define readl(addr) (*(volatile uint32_t *)(addr))
+#define writel(b,addr) ((*(volatile uint32_t *) (addr)) = (b))
 
 static int
 gpio_set_value (unsigned int gpio,
                 unsigned int value)
 {
-  int fd;
+ uint32_t reg;
+ int mem_fd;
+ void *map_base;
+
+ mem_fd = open("/dev/mem", O_RDWR | O_SYNC);
+ if (mem_fd == -1) {
+     printf("Failed to open dev mem\n");
+     return FALSE;
+ }
+
+ map_base = mmap(NULL, 64, PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd, 0xFF70A000);
+ if (map_base == MAP_FAILED) {
+     printf("Failed to mmap memory\n");
+     return FALSE;
+ }
+
+ void *virt_addr = (char *)map_base + 0x0;
+ reg = *(volatile uint32_t*)virt_addr;
+
+ if (value) {
+     reg |= 0x40;
+ } else {
+     reg &= ~0x40;
+ }
+
+ *(volatile uint32_t*)virt_addr = reg;
+
+ munmap(map_base, 64);
+
+/*  int fd;
   char buf[BUF_SIZE];
 
   snprintf (buf, sizeof(buf), GPIO_DIR "/gpio%d/value", gpio);
@@ -216,7 +248,7 @@ gpio_set_value (unsigned int gpio,
   else
     write (fd, "0", 2);
 
-  close (fd);
+  close (fd);*/
   return 0;
 }
 
@@ -228,13 +260,37 @@ bool_t
 platform_gpio_init (Gpu_Hal_Context_t *host,
                     gpio_name          ngpio)
 {
- if (gpio_export (ngpio) < 0)
+ uint32_t reg;
+ int mem_fd;
+ void *map_base;
+
+ mem_fd = open("/dev/mem", O_RDWR | O_SYNC);
+ if (mem_fd == -1) {
+     printf("Failed to open dev mem\n");
+     return FALSE;
+ }
+
+ map_base = mmap(NULL, 64, PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd, 0xFF70A000);
+ if (map_base == MAP_FAILED) {
+     printf("Failed to mmap memory\n");
+     return FALSE;
+ }
+
+ void *virt_addr = (char *)map_base + 0x4;
+ reg = *(volatile uint32_t*)virt_addr;
+
+ reg |= 0x40;
+
+ *(volatile uint32_t*)virt_addr = reg;
+
+ /*if (gpio_export (ngpio) < 0)
    return FALSE;
 
   if (gpio_set_direction (ngpio, GPIO_OUT) < 0)
-   return FALSE;
+   return FALSE;*/
 
-  return TRUE;
+ munmap(map_base, 64);
+ return TRUE;
 }
 
 

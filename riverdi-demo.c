@@ -11,14 +11,18 @@ int main(int argc, char *argv[])
 {
   phost = &host;
 
+  printf("app_Common_init start\n");
   /* Init HW Hal */
   App_Common_Init(&host);
+  printf("App common init end\n");
 
   /* Screen Calibration*/
   //App_Calibrate_Screen(&host);
 
   /* Show Bridgetek logo */
+  printf("show logo start\n");
   App_Show_Logo(&host);
+  printf("show logo end\n");
 
   /* Main application - endless loop */
   SAMAPP_GPU_Ball_Stencil();
